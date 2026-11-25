@@ -5,11 +5,13 @@
 #include <vector>
 
 #include "Maze.h"
+#include "Player.h"
 
-const float TILE_SIZE = 30.0f;
-
-// FEATURE 1: INPUT
-void handleInput(sf::RenderWindow& window)
+// FEATURE 3: PLAYER INPUT
+void handleInput(
+    sf::RenderWindow& window,
+    Player& player,
+    const Maze& maze)
 {
     while (const std::optional<sf::Event> event = window.pollEvent())
     {
@@ -17,44 +19,58 @@ void handleInput(sf::RenderWindow& window)
         {
             window.close();
         }
+
+        if (const auto* key = event->getIf<sf::Event::KeyPressed>())
+        {
+            switch (key->code)
+            {
+            case sf::Keyboard::Key::Up:
+            case sf::Keyboard::Key::W:
+                player.setDirection(1, maze);
+                break;
+
+            case sf::Keyboard::Key::Down:
+            case sf::Keyboard::Key::S:
+                player.setDirection(2, maze);
+                break;
+
+            case sf::Keyboard::Key::Left:
+            case sf::Keyboard::Key::A:
+                player.setDirection(3, maze);
+                break;
+
+            case sf::Keyboard::Key::Right:
+            case sf::Keyboard::Key::D:
+                player.setDirection(4, maze);
+                break;
+
+            default:
+                break;
+            }
+        }
     }
 }
 
-// FEATURE 1: UPDATE
-void updateGame(Maze& maze, float deltaTime)
+// FEATURE 3: UPDATE PLAYER MOVEMENT
+void updateGame(Player& player, const Maze& maze)
 {
-    // Future game logic:
-    // updatePlayer(deltaTime);
-    // updateGhosts(deltaTime);
-    // checkCollisions();
-    // updateScore();
-
-    (void)maze;
-    (void)deltaTime;
+    player.update(maze);
 }
 
-// FEATURE 2: DRAW PLAYER
-void drawPlayer(sf::RenderWindow& window, sf::Vector2i playerStart)
-{
-    sf::CircleShape player(12.0f);
-
-    player.setFillColor(sf::Color::Yellow);
-
-    float x = playerStart.x * TILE_SIZE + 3.0f;
-    float y = playerStart.y * TILE_SIZE + 3.0f;
-
-    player.setPosition(sf::Vector2f(x, y));
-
-    window.draw(player);
-}
-
-// FEATURE 2: DRAW GHOSTS
-void drawGhosts(
+// FEATURE 2 AND 3: DRAW GAME
+void drawGame(
     sf::RenderWindow& window,
+    Maze& maze,
+    Player& player,
     const std::vector<sf::Vector2i>& ghostStarts)
 {
-    sf::CircleShape ghost(12.0f);
+    window.clear(sf::Color::Black);
 
+    maze.draw(window);
+
+    player.draw(window);
+
+    // Draw four ghosts at their starting positions
     std::vector<sf::Color> ghostColors =
     {
         sf::Color::Red,
@@ -63,33 +79,21 @@ void drawGhosts(
         sf::Color(255, 165, 0)
     };
 
+    sf::CircleShape ghost(12.0f);
+
     for (std::size_t i = 0; i < ghostStarts.size(); i++)
     {
-        float x = ghostStarts[i].x * TILE_SIZE + 3.0f;
-        float y = ghostStarts[i].y * TILE_SIZE + 3.0f;
+        ghost.setPosition(
+            sf::Vector2f(
+                ghostStarts[i].x * 30.0f + 3.0f,
+                ghostStarts[i].y * 30.0f + 3.0f
+            )
+        );
 
-        ghost.setPosition(sf::Vector2f(x, y));
         ghost.setFillColor(ghostColors[i % ghostColors.size()]);
 
         window.draw(ghost);
     }
-}
-
-// FEATURE 1 & 2: DRAW EVERYTHING
-void drawGame(
-    sf::RenderWindow& window,
-    Maze& maze,
-    sf::Vector2i playerStart,
-    const std::vector<sf::Vector2i>& ghostStarts)
-{
-    window.clear(sf::Color::Black);
-
-    // Draw maze first
-    maze.draw(window);
-
-    // Draw player and ghosts over the maze
-    drawPlayer(window, playerStart);
-    drawGhosts(window, ghostStarts);
 
     window.display();
 }
@@ -104,7 +108,7 @@ int main()
 
     window.setFramerateLimit(60);
 
-    // Load maze from external text file
+    // Load maze from maze.txt
     Maze maze;
 
     if (!maze.loadFromFile("maze.txt"))
@@ -113,34 +117,28 @@ int main()
         return 1;
     }
 
-    // Get starting positions from maze.txt
-    sf::Vector2i playerStart = maze.getPlayerStart();
+    // Create player at the P position
+    Player player;
 
+    player.setPosition(maze.getPlayerStart());
+
+    // Load ghost starting positions
     std::vector<sf::Vector2i> ghostStarts =
         maze.getGhostStarts();
-
-    std::cout << "Player starting position loaded.\n";
-    std::cout << "Ghost starting positions loaded: "
-        << ghostStarts.size() << '\n';
 
     sf::Clock clock;
 
     // MAIN GAME LOOP
     while (window.isOpen())
     {
-        float deltaTime = clock.restart().asSeconds();
-
-        // JOB 1: Read input
-        handleInput(window);
+        handleInput(window, player, maze);
 
         if (!window.isOpen())
             break;
 
-        // JOB 2: Update game logic
-        updateGame(maze, deltaTime);
+        updateGame(player, maze);
 
-        // JOB 3: Draw everything
-        drawGame(window, maze, playerStart, ghostStarts);
+        drawGame(window, maze, player, ghostStarts);
     }
 
     return 0;
