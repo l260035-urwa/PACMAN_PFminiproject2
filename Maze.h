@@ -26,4 +26,6 @@ public:
     sf::Vector2i getPlayerStart() const;
 
     std::vector<sf::Vector2i> getGhostStarts() const;
+
+    bool isWall(int col, int row) const;
 };
