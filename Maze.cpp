@@ -163,3 +163,30 @@ bool Maze::isWall(int col, int row) const
 
     return mazeLayout[row][col] == '#';
 }
+//FEAtURE 4
+//for collecting pellets in the maze
+char Maze::collectPellet(int col, int row) {
+    //to check whether the position is within maze
+    if (row < 0 || row >= rows || col < 0 || col >= cols)
+        return '\0';
+    char cell = mazeLayout[row][col];
+    if (cell == '.' || cell == 'O')
+    {
+        mazeLayout[row][col] = '-';
+        return cell;
+    }
+    return '\0';
+}
+
+//for counting pallets in the maze
+int Maze::countPellets() const {
+    int count = 0;
+    for (int r = 0;r < rows;r++) {
+        for (int c = 0;c < cols;c++) {
+            if (mazeLayout[r][c] == 'O' || mazeLayout[r][c] == '.')
+                count++;
+        }
+    }
+    return count;
+}
+

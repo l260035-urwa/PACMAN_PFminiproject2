@@ -52,9 +52,28 @@ void handleInput(
 }
 
 // FEATURE 3: UPDATE PLAYER MOVEMENT
-void updateGame(Player& player, const Maze& maze)
+//Featuure 4 :edited to modify maze,update score,pelletcounter,activate ghost turning blue and restating timer
+void updateGame(Player& player, Maze& maze,int& score,int& remainingPellets, bool& ghostBlue, sf::Clock& powerClock)
 {
     player.update(maze);
+    //now we'll get te position of pacman and chck if it has collected pellet and then update score accordingly
+    sf::Vector2i pos = player.getPosition();
+    char pellet = maze.collectPellet(pos.x, pos.y);
+    if (pellet == '.') {
+        score += 10;
+        remainingPellets--;
+        std::cout << "Normal pellet collected! Score: "<<score<<std::endl;
+    }
+    else if (pellet == 'O') {
+        score += 50;
+        remainingPellets--;
+        ghostBlue = true;
+        powerClock.restart();
+        std::cout<<"Power pellet collected! Score: " << score << std::endl;
+    }
+    if (remainingPellets == 0)
+        std::cout << "Congratulations! You collected all pellets!\n";
+
 }
 
 // FEATURE 2 AND 3: DRAW GAME
@@ -127,7 +146,10 @@ int main()
         maze.getGhostStarts();
 
     sf::Clock clock;
-
+    sf::Clock powerClock;
+    int score = 0;
+    int remainingPellets = maze.countPellets();
+    bool ghostBlue = false;
     // MAIN GAME LOOP
     while (window.isOpen())
     {
@@ -136,7 +158,7 @@ int main()
         if (!window.isOpen())
             break;
 
-        updateGame(player, maze);
+        updateGame(player, maze,score,remainingPellets,ghostBlue,powerClock);
 
         drawGame(window, maze, player, ghostStarts);
     }

@@ -8,7 +8,7 @@ class Player
 {
 private:
     sf::Vector2i position;
-
+    
     int direction = 0;
 
     int frameCounter = 0;

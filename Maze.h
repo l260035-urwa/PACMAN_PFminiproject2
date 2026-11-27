@@ -28,4 +28,7 @@ public:
     std::vector<sf::Vector2i> getGhostStarts() const;
 
     bool isWall(int col, int row) const;
+    //for feature 4(pellets&power pellets)
+    char collectPellet(int col, int row);
+    int countPellets() const;
 };
